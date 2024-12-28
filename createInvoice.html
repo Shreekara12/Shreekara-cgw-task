@@ -1,0 +1,48 @@
+<template>
+    <lightning-card title="Invoice Info">
+        <table class="slds-table">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        <div>Parameter Name</div>
+                    </th>
+                    <th scope="col">
+                        <div>Parameter Value</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <template for:each={parameters} for:item="param">
+                    <tr key={param.name}>
+                        <td>
+                            <div>{param.name}</div>
+                        </td>
+                        <td>
+                            <div>{param.value}</div>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </lightning-card>
+    <lightning-card title="Create Invoice" icon-name="custom:custom63">
+        <template if:true={invoiceData}>
+            <h1>Invoice Details</h1>
+            <p>Account: {invoiceData.account}</p>
+            <p>Invoice Date: {invoiceData.invoiceDate}</p>
+            <p>Due Date: {invoiceData.dueDate}</p><br/>
+            <h2>Line items</h2>
+            <template for:each={lineItems} for:item="items">
+                <p key={item.description}>{item.description} - Qty: {item.quantity}, Price: {item.unitPrice},
+                    Total: {item.amount}
+                </p>
+            </template>
+            <lightning-button variant="brand" label="Create Invoice" onclick={handleCreateInvoice}></lightning-button>
+        </template>
+
+        <template if:false={invoiceData}>
+            <p>Loading invoice data...</p>
+        </template>
+
+    </lightning-card>
+</template>
