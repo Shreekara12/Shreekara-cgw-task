@@ -4,7 +4,7 @@ import createInvoice from '@salesforce/apex/InvoiceController.createInvoice';
 
 export default class CreateInvoice extends LightningElement {
     parameters = []
-    @track invoiceData =[]
+    @track invoiceData
     @track lineItems = []
     isLoading = true
 
@@ -17,22 +17,23 @@ export default class CreateInvoice extends LightningElement {
     @api lineItemQuantityField
     @api lineItemUnitPriceField
 
+    @track showJSON = false
+    @track jsonString = ''
+
     connectedCallback(){
 
         
         const urlParams = new URLSearchParams(window.location.search);
-        console.log(urlParams)
         this.originRecordId = urlParams.get('c__origin_record')
-        const account = urlParams.get('c__account')
-        const invoiceDate = urlParams.get('c__invoice_date')
-        const dueDate = urlParams.get('c__invoice_due_date')
+        console.log('this.originRecordId: ' +this.originRecordId)
+        this.account = urlParams.get('c__account')
+        console.log('this.account: ' +this.account)
+        this.invoiceDate = urlParams.get('c__invoice_date')
+        this.dueDate = urlParams.get('c__invoice_due_date')
         this.childRelationship = urlParams.get('c__child_relationship_name')
         this.lineItemDescriptionField = urlParams.get('c__line_item_description')
-        console.log(this.lineItemDescriptionField)
         this.lineItemQuantityField = urlParams.get('c__line_item_quantity')
-        console.log(this.lineItemQuantityField)
         this.lineItemUnitPriceField = urlParams.get('c__line_item_unit_price')
-        console.log(this.lineItemUnitPriceField)
 
         this.parameters = [
             {name:'origin_record', value: urlParams.get('c__origin_record')},
@@ -59,34 +60,46 @@ export default class CreateInvoice extends LightningElement {
         */
 
         fetchInvoiceData({
-            originRecordId:this.originRecordId, invoiceDate:this.invoiceDate,dueDate:this.dueDate, childRelationship:this.childRelationship,
+            originRecordId:this.originRecordId, account:this.account, invoiceDate:this.invoiceDate,dueDate:this.dueDate, childRelationship:this.childRelationship,
             descriptionField: this.lineItemDescriptionField, quantityField:this.lineItemQuantityField, unitPriceField:this.lineItemUnitPriceField
             }).then((data)=>{
-                this.lineItems = data;
+                this.invoiceData = JSON.stringify(JSON.parse(data), null, 2);
                 this.isLoading = false;
             }).catch((error)=>{
                 console.error('Error fetching data: ' +error);
                 this.isLoading = false;
             });
 
-            this.invoiceData = {
+            /*this.invoiceData = {
                 account,
                 invoiceDate,
                 dueDate
-            };
+            };*/
+
+            //this.handleCreateInvoice()
         
     }
 
-    async handleCreateInvoice(){
-        try{
-            const result = await createInvoice({
-                invoiceData : this.invoiceData,
-                lineItems : this.lineItems,
-            });
-            alert('Invoice created Successfully: ' +result);
-        } catch(error){
-            console.error('Error creating Invoice: ' +error);
-        }
+
+    clickHandler(){
+        this.showJSON = true
+        this.jsonString = this.lineItems
+        console.log()
+    }
+
+    handleBack(){
+        this.showJSON = false
+    }
+
+    handleCreateInvoice(){
+        console.log('hi')
+        createInvoice({invoiceJson: this.invoiceData})
+        .then((result)=>{
+            window.location.href = `/lightning/r/Invoice__c/${result}/view`;
+        })
+        .catch((error)=>{
+            console.error('Error creating invoice: ' + error);
+        })
     }
 
 }
